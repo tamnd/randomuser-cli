@@ -138,8 +138,3 @@ func isNumeric(s string) bool {
 	}
 	return true
 }
-
-// mapErr converts a library error into the kit error kind.
-func mapErr(err error) error {
-	return err
-}

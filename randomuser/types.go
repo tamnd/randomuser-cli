@@ -1,7 +1,5 @@
 package randomuser
 
-import "encoding/json"
-
 // User is one randomly generated user profile from randomuser.me.
 type User struct {
 	UUID     string `kit:"id" json:"uuid"` // login.uuid
@@ -26,18 +24,9 @@ type rawUser struct {
 		Last  string `json:"last"`
 	} `json:"name"`
 	Location struct {
-		Street struct {
-			Number int    `json:"number"`
-			Name   string `json:"name"`
-		} `json:"street"`
-		City        string          `json:"city"`
-		State       string          `json:"state"`
-		Country     string          `json:"country"`
-		Postcode    json.RawMessage `json:"postcode"`
-		Coordinates struct {
-			Latitude  string `json:"latitude"`
-			Longitude string `json:"longitude"`
-		} `json:"coordinates"`
+		City    string `json:"city"`
+		State   string `json:"state"`
+		Country string `json:"country"`
 	} `json:"location"`
 	Email string `json:"email"`
 	Login struct {
@@ -62,18 +51,4 @@ type apiResponse struct {
 		Page    int    `json:"page"`
 		Version string `json:"version"`
 	} `json:"info"`
-}
-
-// parsePostcode converts the postcode field (string or number) to a string.
-func parsePostcode(raw json.RawMessage) string {
-	if len(raw) == 0 {
-		return ""
-	}
-	// try quoted string
-	var s string
-	if err := json.Unmarshal(raw, &s); err == nil {
-		return s
-	}
-	// number — return as raw digits
-	return string(raw)
 }
