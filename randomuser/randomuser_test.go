@@ -12,8 +12,8 @@ import (
 )
 
 // fakeMockJSON has two users: one US female, one FR male.
-// postcode is a string for the US user; integer-like for the FR user.
-const fakeMockJSON = `{"results":[{"gender":"female","name":{"title":"Ms","first":"Cassandra","last":"Olson"},"location":{"street":{"number":123,"name":"Main St"},"city":"Portland","state":"Oregon","country":"United States","postcode":"97201","coordinates":{"latitude":"45.5231","longitude":"-122.6765"}},"email":"cassandra.olson@example.com","dob":{"date":"1985-02-14T00:00:00.000Z","age":41},"phone":"(503) 555-0142","nat":"US"},{"gender":"male","name":{"title":"Mr","first":"Jean","last":"Dupont"},"location":{"street":{"number":7,"name":"Rue de Rivoli"},"city":"Paris","state":"Ile-de-France","country":"France","postcode":75001,"coordinates":{"latitude":"48.8566","longitude":"2.3522"}},"email":"jean.dupont@example.com","dob":{"date":"1992-07-22T00:00:00.000Z","age":33},"phone":"01-234-567","nat":"FR"}],"info":{"seed":"abc123","results":2,"page":1,"version":"1.4"}}`
+// login.uuid and login.username are included per the inc parameter.
+const fakeMockJSON = `{"results":[{"gender":"female","name":{"title":"Ms","first":"Cassandra","last":"Olson"},"location":{"street":{"number":123,"name":"Main St"},"city":"Portland","state":"Oregon","country":"United States","postcode":"97201","coordinates":{"latitude":"45.5231","longitude":"-122.6765"}},"email":"cassandra.olson@example.com","login":{"uuid":"abc-def-001","username":"goldenmouse123","password":"chester"},"dob":{"date":"1985-02-14T00:00:00.000Z","age":41},"phone":"(503) 555-0142","nat":"US"},{"gender":"male","name":{"title":"Mr","first":"Jean","last":"Dupont"},"location":{"street":{"number":7,"name":"Rue de Rivoli"},"city":"Paris","state":"Ile-de-France","country":"France","postcode":75001,"coordinates":{"latitude":"48.8566","longitude":"2.3522"}},"email":"jean.dupont@example.com","login":{"uuid":"xyz-ghi-002","username":"bluefox456","password":"secret"},"dob":{"date":"1992-07-22T00:00:00.000Z","age":33},"phone":"01-234-567","nat":"FR"}],"info":{"seed":"abc123","results":2,"page":1,"version":"1.4"}}`
 
 func newTestClient(ts *httptest.Server) *randomuser.Client {
 	cfg := randomuser.DefaultConfig()
@@ -56,11 +56,11 @@ func TestGenerateParsesUsers(t *testing.T) {
 	}
 
 	u := items[0]
-	if u.FirstName != "Cassandra" {
-		t.Errorf("FirstName = %q, want Cassandra", u.FirstName)
+	if u.UUID != "abc-def-001" {
+		t.Errorf("UUID = %q, want abc-def-001", u.UUID)
 	}
-	if u.LastName != "Olson" {
-		t.Errorf("LastName = %q, want Olson", u.LastName)
+	if u.Name != "Cassandra Olson" {
+		t.Errorf("Name = %q, want Cassandra Olson", u.Name)
 	}
 	if u.Email != "cassandra.olson@example.com" {
 		t.Errorf("Email = %q, want cassandra.olson@example.com", u.Email)
@@ -71,32 +71,31 @@ func TestGenerateParsesUsers(t *testing.T) {
 	if u.State != "Oregon" {
 		t.Errorf("State = %q, want Oregon", u.State)
 	}
-	if u.BirthDate != "1985-02-14" {
-		t.Errorf("BirthDate = %q, want 1985-02-14", u.BirthDate)
-	}
 	if u.Age != 41 {
 		t.Errorf("Age = %d, want 41", u.Age)
-	}
-	if u.Postcode != "97201" {
-		t.Errorf("Postcode = %q, want 97201", u.Postcode)
-	}
-	if u.Latitude != "45.5231" {
-		t.Errorf("Latitude = %q, want 45.5231", u.Latitude)
 	}
 	if u.Gender != "female" {
 		t.Errorf("Gender = %q, want female", u.Gender)
 	}
+	if u.Username != "goldenmouse123" {
+		t.Errorf("Username = %q, want goldenmouse123", u.Username)
+	}
+	if u.Nat != "US" {
+		t.Errorf("Nat = %q, want US", u.Nat)
+	}
 
 	u2 := items[1]
-	if u2.FirstName != "Jean" {
-		t.Errorf("items[1].FirstName = %q, want Jean", u2.FirstName)
+	if u2.UUID != "xyz-ghi-002" {
+		t.Errorf("items[1].UUID = %q, want xyz-ghi-002", u2.UUID)
+	}
+	if u2.Name != "Jean Dupont" {
+		t.Errorf("items[1].Name = %q, want Jean Dupont", u2.Name)
 	}
 	if u2.Nat != "FR" {
 		t.Errorf("items[1].Nat = %q, want FR", u2.Nat)
 	}
-	// FR postcode is integer in JSON — should decode to string "75001"
-	if u2.Postcode != "75001" {
-		t.Errorf("items[1].Postcode = %q, want 75001", u2.Postcode)
+	if u2.Username != "bluefox456" {
+		t.Errorf("items[1].Username = %q, want bluefox456", u2.Username)
 	}
 }
 
@@ -181,11 +180,11 @@ func TestGenerateRetriesOn503(t *testing.T) {
 	}
 }
 
-func TestGenerateIncludesRequiredFields(t *testing.T) {
+func TestGenerateIncludesLoginInIncParam(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		inc := r.URL.Query().Get("inc")
-		if inc == "" {
-			t.Error("inc param missing from request")
+		if !strings.Contains(inc, "login") {
+			t.Errorf("inc param %q does not include login", inc)
 		}
 		_, _ = fmt.Fprint(w, fakeMockJSON)
 	}))
@@ -195,5 +194,23 @@ func TestGenerateIncludesRequiredFields(t *testing.T) {
 	_, err := c.Generate(context.Background(), randomuser.GenerateParams{Results: 1})
 	if err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestGenerateDefaultResultsIsOne(t *testing.T) {
+	var gotURL string
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gotURL = r.URL.String()
+		_, _ = fmt.Fprint(w, `{"results":[{"gender":"male","name":{"title":"Mr","first":"Bob","last":"Smith"},"location":{"city":"NY","state":"NY","country":"US","postcode":"10001","coordinates":{"latitude":"0","longitude":"0"}},"email":"bob@example.com","login":{"uuid":"u1","username":"bob1","password":"pw"},"dob":{"date":"1990-01-01T00:00:00.000Z","age":34},"phone":"555-0000","nat":"US"}],"info":{"seed":"x","results":1,"page":1,"version":"1.4"}}`)
+	}))
+	defer ts.Close()
+
+	c := newTestClient(ts)
+	_, err := c.Generate(context.Background(), randomuser.GenerateParams{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(gotURL, "results=1") {
+		t.Errorf("URL %q does not contain results=1 (default should be 1)", gotURL)
 	}
 }
