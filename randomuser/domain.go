@@ -71,19 +71,19 @@ func newClient(_ context.Context, cfg kit.Config) (any, error) {
 // --- inputs ---
 
 type generateInput struct {
-	Results int     `kit:"flag,inherit" help:"number of users to generate" default:"5"`
-	Nat     string  `kit:"flag" help:"nationality codes e.g. us,gb,au (comma-sep)"`
-	Gender  string  `kit:"flag" help:"gender filter: male|female"`
-	Seed    string  `kit:"flag" help:"seed for reproducible results"`
-	Client  *Client `kit:"inject"`
+	Count  int     `kit:"flag" help:"number of users to generate" default:"1"`
+	Nat    string  `kit:"flag" help:"nationality codes e.g. us,gb,au (comma-sep)"`
+	Gender string  `kit:"flag" help:"gender filter: male|female"`
+	Seed   string  `kit:"flag" help:"seed for reproducible results"`
+	Client *Client `kit:"inject"`
 }
 
 // --- handlers ---
 
 func generateOp(ctx context.Context, in generateInput, emit func(User) error) error {
-	count := in.Results
+	count := in.Count
 	if count <= 0 {
-		count = 5
+		count = 1
 	}
 	items, err := in.Client.Generate(ctx, GenerateParams{
 		Results: count,

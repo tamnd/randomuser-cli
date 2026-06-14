@@ -4,21 +4,17 @@ import "encoding/json"
 
 // User is one randomly generated user profile from randomuser.me.
 type User struct {
-	Gender     string `kit:"id" json:"gender"`
-	FirstName  string `json:"first_name"`
-	LastName   string `json:"last_name"`
-	Title      string `json:"title"`
-	Email      string `json:"email"`
-	Phone      string `json:"phone"`
-	Nat        string `json:"nationality"`
-	City       string `json:"city"`
-	State      string `json:"state"`
-	Country    string `json:"country"`
-	Postcode   string `json:"postcode"`
-	Latitude   string `json:"latitude"`
-	Longitude  string `json:"longitude"`
-	BirthDate  string `json:"birth_date"`
-	Age        int    `json:"age"`
+	UUID     string `kit:"id" json:"uuid"`     // login.uuid
+	Name     string `json:"name"`              // "First Last"
+	Email    string `json:"email"`
+	Phone    string `json:"phone"`
+	Gender   string `json:"gender"`
+	Age      int    `json:"age"`               // dob.age
+	City     string `json:"city"`              // location.city
+	State    string `json:"state"`             // location.state
+	Country  string `json:"country"`           // location.country
+	Nat      string `json:"nat"`
+	Username string `json:"username"`          // login.username
 }
 
 // rawUser is the wire shape returned by randomuser.me.
@@ -44,7 +40,12 @@ type rawUser struct {
 		} `json:"coordinates"`
 	} `json:"location"`
 	Email string `json:"email"`
-	DOB   struct {
+	Login struct {
+		UUID     string `json:"uuid"`
+		Username string `json:"username"`
+		Password string `json:"password"`
+	} `json:"login"`
+	DOB struct {
 		Date string `json:"date"` // "1990-05-12T00:00:00.000Z"
 		Age  int    `json:"age"`
 	} `json:"dob"`
@@ -68,7 +69,7 @@ func parsePostcode(raw json.RawMessage) string {
 	if len(raw) == 0 {
 		return ""
 	}
-	// try unquoted string
+	// try quoted string
 	var s string
 	if err := json.Unmarshal(raw, &s); err == nil {
 		return s

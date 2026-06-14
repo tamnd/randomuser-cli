@@ -67,7 +67,7 @@ type GenerateParams struct {
 // Generate fetches randomly generated user profiles with the given params.
 func (c *Client) Generate(ctx context.Context, p GenerateParams) ([]User, error) {
 	if p.Results <= 0 {
-		p.Results = 5
+		p.Results = 1
 	}
 	if p.Results > 5000 {
 		p.Results = 5000
@@ -75,7 +75,7 @@ func (c *Client) Generate(ctx context.Context, p GenerateParams) ([]User, error)
 
 	q := url.Values{}
 	q.Set("results", fmt.Sprintf("%d", p.Results))
-	q.Set("inc", "name,email,location,phone,nat,gender,dob")
+	q.Set("inc", "name,email,location,login,dob,phone,nat,gender")
 	if p.Nat != "" {
 		q.Set("nat", p.Nat)
 	}
@@ -99,26 +99,18 @@ func (c *Client) Generate(ctx context.Context, p GenerateParams) ([]User, error)
 
 	users := make([]User, 0, len(resp.Results))
 	for _, r := range resp.Results {
-		dob := r.DOB.Date
-		if len(dob) >= 10 {
-			dob = dob[:10]
-		}
 		users = append(users, User{
-			Gender:    r.Gender,
-			Title:     r.Name.Title,
-			FirstName: r.Name.First,
-			LastName:  r.Name.Last,
-			Email:     r.Email,
-			Phone:     r.Phone,
-			Nat:       r.Nat,
-			City:      r.Location.City,
-			State:     r.Location.State,
-			Country:   r.Location.Country,
-			Postcode:  parsePostcode(r.Location.Postcode),
-			Latitude:  r.Location.Coordinates.Latitude,
-			Longitude: r.Location.Coordinates.Longitude,
-			BirthDate: dob,
-			Age:       r.DOB.Age,
+			UUID:     r.Login.UUID,
+			Name:     r.Name.First + " " + r.Name.Last,
+			Email:    r.Email,
+			Phone:    r.Phone,
+			Gender:   r.Gender,
+			Age:      r.DOB.Age,
+			City:     r.Location.City,
+			State:    r.Location.State,
+			Country:  r.Location.Country,
+			Nat:      r.Nat,
+			Username: r.Login.Username,
 		})
 	}
 	return users, nil
