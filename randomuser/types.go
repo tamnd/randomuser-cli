@@ -4,17 +4,17 @@ import "encoding/json"
 
 // User is one randomly generated user profile from randomuser.me.
 type User struct {
-	UUID     string `kit:"id" json:"uuid"`     // login.uuid
-	Name     string `json:"name"`              // "First Last"
+	UUID     string `kit:"id" json:"uuid"` // login.uuid
+	Name     string `json:"name"`          // "First Last"
 	Email    string `json:"email"`
 	Phone    string `json:"phone"`
 	Gender   string `json:"gender"`
-	Age      int    `json:"age"`               // dob.age
-	City     string `json:"city"`              // location.city
-	State    string `json:"state"`             // location.state
-	Country  string `json:"country"`           // location.country
+	Age      int    `json:"age"`     // dob.age
+	City     string `json:"city"`    // location.city
+	State    string `json:"state"`   // location.state
+	Country  string `json:"country"` // location.country
 	Nat      string `json:"nat"`
-	Username string `json:"username"`          // login.username
+	Username string `json:"username"` // login.username
 }
 
 // rawUser is the wire shape returned by randomuser.me.
@@ -30,10 +30,10 @@ type rawUser struct {
 			Number int    `json:"number"`
 			Name   string `json:"name"`
 		} `json:"street"`
-		City     string          `json:"city"`
-		State    string          `json:"state"`
-		Country  string          `json:"country"`
-		Postcode json.RawMessage `json:"postcode"`
+		City        string          `json:"city"`
+		State       string          `json:"state"`
+		Country     string          `json:"country"`
+		Postcode    json.RawMessage `json:"postcode"`
 		Coordinates struct {
 			Latitude  string `json:"latitude"`
 			Longitude string `json:"longitude"`
