@@ -1,0 +1,10 @@
+title       = "randomuser"
+baseURL     = "https://randomuser-cli.tamnd.com/"
+description = "A command line for randomuser."
+contentDir  = "content"
+outputDir   = "public"
+theme       = "tago-doks"
+syntaxHighlight = "true"
+
+[params]
+github = "https://github.com/tamnd/randomuser-cli"
